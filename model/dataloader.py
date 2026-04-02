@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
+from transformers import AutoConfig
 import os
 
 class MyDataset(Dataset):
@@ -33,3 +34,14 @@ print(f' GM data shape: {data.dataset.gm.shape}')
 print(f'SNP data shape: {data.dataset.SNP.shape}')
 print(f'Labels shape: {data.dataset.labels.shape}')
 print("DataLoader content printed successfully")
+# 모델 다운로드 없이 config만 가져오기
+config = AutoConfig.from_pretrained("Qwen/Qwen2.5-VL-3B-Instruct")
+
+# LLM hidden_size (우리가 projection해야 하는 차원)
+print(f"LLM hidden_size: {config.text_config.hidden_size}")      # 3584 ✅
+
+# ViT hidden_size (vision encoder 차원)
+print(f"ViT hidden_size: {config.vision_config.hidden_size}")    # 1280
+
+# ViT → LLM projection 후 차원 (out_hidden_size)
+print(f"Projected hidden_size: {config.vision_config.out_hidden_size}")
