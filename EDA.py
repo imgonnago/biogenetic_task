@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
 
-data = np.loda('./biogenetic')
+data = np.load('./biogenetic')
 
 print(data)
