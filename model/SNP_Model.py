@@ -82,7 +82,7 @@ class SNPClassifier(nn.Module):
 
 
 # SNPEncoder 모델 정의. SNP 데이터에서 feature만 추출 (classifier 미적용)
-class SNPEncoder(nn.Module):
+class SNP_Encoder(nn.Module):
     def __init__(self,
                 input_dim = 2098, 
                 chunk_size = 100,
