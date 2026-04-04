@@ -39,6 +39,7 @@ class SNPDataset(Dataset):
         label = torch.tensor(np.argmax(self.labels[idx]), dtype=torch.long)
         return SNP, label
     
+    
 class GMDataset(Dataset):
     def __init__(self, data_dir, split='train'):
         self.data_dir = data_dir
@@ -84,12 +85,4 @@ def get_dataloader(dataset, batch_size=16, split='train'):
         )
     return dataloader
 
-
-data = get_dataloader(data_dir='./biogenetic', batch_size=16, split='train')
-print("DataLoader created successfully")
-print(f"Number of data: {len(data.dataset)}")
-print(f'GM data shape: {data.dataset.gm.shape}')
-print(f'SNP data shape: {data.dataset.SNP.shape}')
-print(f'Labels shape: {data.dataset.labels.shape}')
-print("DataLoader content printed successfully")
 
