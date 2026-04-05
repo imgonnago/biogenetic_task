@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+
+# Add parent directory to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from model.SNP_Model import SNPClassifier
 from model.dataloader import get_dataloader, SNPDataset
 from run.validation import validate
@@ -29,7 +35,7 @@ def SNP_main():
 
     print("DataLoader created successfully")
     
-    train(model, train_loader, optimizer=torch.optim.Adam(model.parameters(), lr=0.001), criterion=nn.CrossEntropyLoss(), device=torch.device('cuda' if torch.cuda.is_available() else 'cpu'), num_epochs=10)
+    train(model, train_loader, optimizer=torch.optim.Adam(model.parameters(), lr=0.001), criterion=nn.CrossEntropyLoss(), num_epochs=10)
     test(model, test_loader)
     validate(model, val_loader)
 
