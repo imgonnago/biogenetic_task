@@ -23,13 +23,13 @@ class GM_CNN(nn.Module):
         self.GM_CNN = nn.Sequential(
             nn.Conv1d(1, 32, kernel_size=3, padding=1),
             nn.GELU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.1),
             nn.Conv1d(32, 64, kernel_size=3, padding=1),
             nn.GELU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.1),
             nn.Conv1d(64, cnn_channels, kernel_size=3, padding=1),
             nn.GELU(),
-            nn.Dropout(0.3)
+            nn.Dropout(0.2)
         )
 
         #CNN 레이어 출력수와 어텐션 레이어 입력 차원을 맞추기 위해 projection 레이어 정의.
@@ -54,7 +54,7 @@ class GM_CNN(nn.Module):
         self.classifier = nn.Sequential(
             nn.Linear(attn_dim, 64),
             nn.GELU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.1),
             nn.Linear(64, output_dim)
         )
         
@@ -84,13 +84,13 @@ class GM_Encoder(nn.Module):
         self.GM_CNN = nn.Sequential(
             nn.Conv1d(1, 32, kernel_size=3, padding=1),
             nn.GELU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.1),
             nn.Conv1d(32, 64, kernel_size=3, padding=1),
             nn.GELU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.1),
             nn.Conv1d(64, cnn_channels, kernel_size=3, padding=1),
             nn.GELU(),
-            nn.Dropout(0.3)
+            nn.Dropout(0.2)
         )
 
         self.projection = nn.Linear(

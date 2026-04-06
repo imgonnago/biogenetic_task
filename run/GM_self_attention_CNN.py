@@ -1,6 +1,9 @@
 import sys
 from pathlib import Path
 
+import os
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
+
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -29,13 +32,14 @@ def GM_main():
     GM_test = GMDataset(data_dir='./biogenetic', split='test')
     GM_val = GMDataset(data_dir='./biogenetic', split='val')
 
-    train_loader = get_dataloader(GM_train, batch_size=16, split='train')
-    test_loader = get_dataloader(GM_test, batch_size=16, split='test')
-    val_loader = get_dataloader(GM_val, batch_size=16, split='val')
+    train_loader = get_dataloader(GM_train, batch_size=8, split='train')
+    test_loader = get_dataloader(GM_test, batch_size=8, split='test')
+    val_loader = get_dataloader(GM_val, batch_size=8, split='val')
 
     print("DataLoader created successfully")
-    
-    train(model, train_loader, optimizer=torch.optim.Adam(model.parameters(), lr=0.001), criterion=nn.CrossEntropyLoss(), num_epochs=10)
+    print("Starting training...")
+    print("-" * 50)
+    train(model, train_loader, optimizer=torch.optim.Adam(model.parameters(), lr=1e-3), criterion=nn.CrossEntropyLoss(), num_epochs=100)
     test(model, test_loader)
     validate(model, val_loader)
 

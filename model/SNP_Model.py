@@ -11,7 +11,7 @@ class SNPClassifier(nn.Module):
                 #SNP 데이터를 처리하기 위한 MLP 레이어에서 사용할 청크 크기 설정. 입력 차원을 청크 크기로 나누어 처리.
                 chunk_size = 100,
                 #classifier 마지막 레이어 차원 설정. 이후 프로젝션으로 어텐션 레이어 차원으로 맞춰줌.
-                classifier_hidden_dim = 256,
+                classifier_hidden_dim = 128,
                 #어텐션 레이어 차원 설정. classifier_hidden_dim과 달라도 상관 없음. projection 레이어에서 맞춰줌.
                 attn_dim = 256,
                 #어텐션 헤드 수 설정. attn_dim이 num_heads로 나누어 떨어져야 함.
@@ -26,11 +26,11 @@ class SNPClassifier(nn.Module):
         #MLP 레이어 정의. 입력차원을 chunk_size로 설정. 
         #청크 사이즈로 나누어 처리하여 모델의 파라미터 수를 줄임.
         self.SNPclassifier = nn.Sequential(
-            nn.Linear(chunk_size, 128),
+            nn.Linear(chunk_size, 64),
             nn.GELU(),
             nn.Dropout(0.3),
-            nn.Linear(128, 256),
-            nn.LayerNorm(256),
+            nn.Linear(64, 128),
+            nn.LayerNorm(128),
             nn.GELU(),
             nn.Dropout(0.3),
             nn.Linear(classifier_hidden_dim, attn_dim)
@@ -43,7 +43,7 @@ class SNPClassifier(nn.Module):
         self.attn = nn.MultiheadAttention(
             attn_dim,
             num_heads,
-            dropout=0.3,
+            dropout=0.5,
             batch_first=True
         )
 

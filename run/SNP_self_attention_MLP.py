@@ -1,6 +1,9 @@
 import sys
 from pathlib import Path
 
+import os
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
+
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -35,7 +38,7 @@ def SNP_main():
 
     print("DataLoader created successfully")
     
-    train(model, train_loader, optimizer=torch.optim.Adam(model.parameters(), lr=0.001), criterion=nn.CrossEntropyLoss(), num_epochs=10)
+    train(model, train_loader, optimizer=torch.optim.Adam(model.parameters(), lr=1e-3), criterion=nn.CrossEntropyLoss(), num_epochs=50)
     test(model, test_loader)
     validate(model, val_loader)
 
