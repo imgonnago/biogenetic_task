@@ -10,7 +10,7 @@ class FusionModel(torch.nn.Module):
                 snp_input_dim = 2098,
                 gm_input_dim = 93,
                 output_dim = 4,
-                attn_dim = 256,
+                attn_dim = 64,
                 num_heads = 8
                 ):
         super().__init__()
@@ -18,7 +18,7 @@ class FusionModel(torch.nn.Module):
         self.snp_encoder = SNP_Encoder(
             input_dim = snp_input_dim,
             chunk_size = 100,
-            classifier_hidden_dim = 256,
+            classifier_hidden_dim = 64,
             attn_dim = attn_dim,
             num_heads = num_heads
         )

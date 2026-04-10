@@ -39,7 +39,7 @@ def GM_main():
     print("DataLoader created successfully")
     print("Starting training...")
     print("-" * 50)
-    train(model, train_loader, optimizer=torch.optim.Adam(model.parameters(), lr=1e-3), criterion=nn.CrossEntropyLoss(), num_epochs=100)
+    train(model, train_loader, optimizer=torch.optim.Adam(model.parameters(), lr=1e-4), criterion=nn.CrossEntropyLoss(), num_epochs=100)
     test(model, test_loader)
     validate(model, val_loader)
 

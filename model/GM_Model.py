@@ -10,9 +10,9 @@ class GM_CNN(nn.Module):
                 input_dim: int = 93,
                 output_dim: int = 4,
                 #CNN 마지막 채널수 설정. 이후 프로젝션으로 어텐션 레이어 차원으로 맞춰줌.
-                cnn_channels: int = 128,
+                cnn_channels: int = 64,
                 #어텐션 레이어 차원 설정. CNN 채널 수와 달라도 상관 없음. projection 레이어에서 맞춰줌.
-                attn_dim:int = 256,
+                attn_dim:int = 64,
                 #어텐션 헤드 수 설정. attn_dim이 num_heads로 나누어 떨어져야 함.
                 num_heads: int = 8,
                   ):
@@ -21,15 +21,12 @@ class GM_CNN(nn.Module):
         #CNN 레이어 정의. 1D CNN을 사용하여 GM 데이터를 처리. 채널 수는 cnn_channels로 설정.
         #각 CNN 레이어는 GELU 활성화 함수와 드롭아웃을 포함하여 과적합 방지.
         self.GM_CNN = nn.Sequential(
-            nn.Conv1d(1, 32, kernel_size=3, padding=1),
+            nn.Conv1d(1, 16, kernel_size=3, padding=1),
+            nn.GELU(),
+            nn.Conv1d(16, 32, kernel_size=3, padding=1),
             nn.GELU(),
             nn.Dropout(0.1),
-            nn.Conv1d(32, 64, kernel_size=3, padding=1),
-            nn.GELU(),
-            nn.Dropout(0.1),
-            nn.Conv1d(64, cnn_channels, kernel_size=3, padding=1),
-            nn.GELU(),
-            nn.Dropout(0.2)
+            nn.Conv1d(32, cnn_channels, kernel_size=3, padding=1),
         )
 
         #CNN 레이어 출력수와 어텐션 레이어 입력 차원을 맞추기 위해 projection 레이어 정의.
@@ -52,10 +49,9 @@ class GM_CNN(nn.Module):
         
         #classifier 레이어 정의. 
         self.classifier = nn.Sequential(
-            nn.Linear(attn_dim, 64),
+            nn.Linear(attn_dim, 32),
             nn.GELU(),
-            nn.Dropout(0.1),
-            nn.Linear(64, output_dim)
+            nn.Linear(32, output_dim)
         )
         
         #forward 정의.
@@ -75,8 +71,8 @@ class GM_CNN(nn.Module):
 class GM_Encoder(nn.Module):
     def __init__(self, 
                 input_dim: int = 93,
-                cnn_channels: int = 128,
-                attn_dim: int = 256,
+                cnn_channels: int = 64,
+                attn_dim: int = 64,
                 num_heads: int = 8,
                   ):
         super().__init__()
@@ -84,13 +80,13 @@ class GM_Encoder(nn.Module):
         self.GM_CNN = nn.Sequential(
             nn.Conv1d(1, 32, kernel_size=3, padding=1),
             nn.GELU(),
-            nn.Dropout(0.1),
             nn.Conv1d(32, 64, kernel_size=3, padding=1),
             nn.GELU(),
             nn.Dropout(0.1),
-            nn.Conv1d(64, cnn_channels, kernel_size=3, padding=1),
+            nn.Conv1d(64, 64, kernel_size=3, padding=1),
             nn.GELU(),
-            nn.Dropout(0.2)
+            nn.Dropout(0.1),
+            nn.Conv1d(64, cnn_channels, kernel_size=3, padding=1)
         )
 
         self.projection = nn.Linear(
@@ -103,7 +99,7 @@ class GM_Encoder(nn.Module):
         self.attn = nn.MultiheadAttention(
             attn_dim, 
             num_heads,
-            dropout=0.3,
+            dropout=0.1,
             batch_first=True
             )
         

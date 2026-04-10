@@ -35,7 +35,7 @@ def Fusion_main():
     print("DataLoader created successfully")
     
     
-    Fusion_train(model, train_loader, optimizer=torch.optim.Adam(model.parameters(), lr=3e-4), criterion=nn.CrossEntropyLoss(), num_epochs=50)
+    Fusion_train(model, train_loader, optimizer=torch.optim.Adam(model.parameters(), lr=5e-5), criterion=nn.CrossEntropyLoss(), num_epochs=100)
     Fusion_test(model, test_loader)
     Fusion_validate(model, val_loader)
 
