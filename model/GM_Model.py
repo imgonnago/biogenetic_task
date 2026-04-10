@@ -46,7 +46,7 @@ class GM_CNN(nn.Module):
         self.attn = nn.MultiheadAttention(
             attn_dim, 
             num_heads,
-            dropout=0.3,
+            dropout=0.2,
             batch_first=True
             )
         
