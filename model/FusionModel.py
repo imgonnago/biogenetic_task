@@ -49,6 +49,7 @@ class FusionModel(torch.nn.Module):
             nn.Linear(attn_dim * 2, 128),
             nn.LayerNorm(128),
             nn.GELU(),
+            nn.Dropout(0.1),
             nn.Linear(128, attn_dim)
         )
 

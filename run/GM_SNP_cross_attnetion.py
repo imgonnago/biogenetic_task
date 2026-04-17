@@ -6,6 +6,7 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import model
 from model.FusionModel import FusionModel
 from model.dataloader import get_dataloader, FusionDataset
 from run.validation import Fusion_validate
@@ -35,9 +36,9 @@ def Fusion_main():
     print("DataLoader created successfully")
     
     
-    Fusion_train(model, train_loader, optimizer=torch.optim.Adam(model.parameters(), lr=5e-5), criterion=nn.CrossEntropyLoss(), num_epochs=100)
-    Fusion_test(model, test_loader)
-    Fusion_validate(model, val_loader)
+    best_ckpt = Fusion_train(model, train_loader, val_loader, optimizer=torch.optim.Adam(model.parameters(), lr=1e-4), num_epochs=100)
+    Fusion_test(model, test_loader, ckpt_path=best_ckpt)
+    Fusion_validate(model, val_loader, ckpt_path=best_ckpt)
 
 if __name__ == "__main__":
     Fusion_main()

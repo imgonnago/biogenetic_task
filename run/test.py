@@ -4,10 +4,15 @@ import torch
 
 def test(
         model, 
-        dataset, 
+        dataset,
+        ckpt_path,                                          # ★ 추가: 베스트 체크포인트 경로
         device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ):
     
+    # ★ 베스트 파라미터 로드
+    model.load_state_dict(torch.load(ckpt_path, map_location=device))
+    model.to(device)
+
     model.eval()
     total = 0
     correct = 0
@@ -32,12 +37,18 @@ def test(
     report = classification_report(all_labels, all_preds)
     return print(f"Test Accuracy: {accuracy:.2f}% \nConfusion Matrix:\n{confusion}\nClassification Report: \n{report}")
 
+
 def Fusion_test(
         model, 
-        dataset, 
+        dataset,
+        ckpt_path,                                          # ★ 추가
         device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ):
     
+    # ★ 베스트 파라미터 로드
+    model.load_state_dict(torch.load(ckpt_path, map_location=device))
+    model.to(device)
+
     model.eval()
     total = 0
     correct = 0
@@ -45,8 +56,8 @@ def Fusion_test(
     all_labels = []
     with torch.no_grad():
         for snp, gm, label in dataset:
-            snp = snp.to(device)
-            gm = gm.to(device)
+            snp   = snp.to(device)
+            gm    = gm.to(device)
             label = label.to(device)
 
             outputs, attn_w = model(snp, gm)

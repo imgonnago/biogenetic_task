@@ -11,9 +11,9 @@ class SNPClassifier(nn.Module):
                 #SNP 데이터를 처리하기 위한 MLP 레이어에서 사용할 청크 크기 설정. 입력 차원을 청크 크기로 나누어 처리.
                 chunk_size = 100,
                 #classifier 마지막 레이어 차원 설정. 이후 프로젝션으로 어텐션 레이어 차원으로 맞춰줌.
-                classifier_hidden_dim = 32,
+                classifier_hidden_dim = 128,
                 #어텐션 레이어 차원 설정. classifier_hidden_dim과 달라도 상관 없음. projection 레이어에서 맞춰줌.
-                attn_dim = 64,
+                attn_dim = 256,
                 #어텐션 헤드 수 설정. attn_dim이 num_heads로 나누어 떨어져야 함.
                 num_heads = 8,
                 ):
@@ -26,13 +26,13 @@ class SNPClassifier(nn.Module):
         #MLP 레이어 정의. 입력차원을 chunk_size로 설정. 
         #청크 사이즈로 나누어 처리하여 모델의 파라미터 수를 줄임.
         self.SNPclassifier = nn.Sequential(
-            nn.Linear(chunk_size, 16),
+            nn.Linear(chunk_size, 32),
             nn.GELU(),
-            nn.Linear(16, 32),
-            nn.LayerNorm(32),
+            nn.Linear(32, 64),
+            nn.LayerNorm(64),
             nn.GELU(),
-            nn.Linear(32, 32),
-            nn.LayerNorm(32),
+            nn.Linear(64,128),
+            nn.LayerNorm(128),
             nn.GELU(),
             nn.Linear(classifier_hidden_dim, attn_dim)
         )
@@ -44,15 +44,18 @@ class SNPClassifier(nn.Module):
         self.attn = nn.MultiheadAttention(
             attn_dim,
             num_heads,
-            dropout=0.1,
+            dropout=0.2,
             batch_first=True
         )
 
         #classifier 레이어 정의.
         self.classifier = nn.Sequential(
             nn.Linear(attn_dim, 32),
+            nn.LayerNorm(32),
             nn.GELU(),
-            nn.Linear(32, output_dim)
+            nn.Linear(32,64),
+            nn.GELU(),
+            nn.Linear(64, output_dim)
         )
 
         #forward 정의.
@@ -76,7 +79,7 @@ class SNPClassifier(nn.Module):
         x = self.SNPclassifier(x)
         out, attn_x = self.attn(x, x, x)
         out = self.norm(out)
-        out = out.mean(dim=1)
+        out = out.max(dim=1).values
         out = self.classifier(out)
         return out, attn_x
 

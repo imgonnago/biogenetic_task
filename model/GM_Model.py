@@ -18,19 +18,23 @@ class GM_CNN(nn.Module):
                   ):
         super().__init__()
 
-        #CNN 레이어 정의. 1D CNN을 사용하여 GM 데이터를 처리. 채널 수는 cnn_channels로 설정.
-        #각 CNN 레이어는 GELU 활성화 함수와 드롭아웃을 포함하여 과적합 방지.
+        # [수정] Conv 3층으로 유지하되 채널 확대: 1→32→64→cnn_channels
+        # kernel_size 5→3→3: 첫 레이어에서 더 넓은 패턴 포착
+        # 기존: 1→16→32→64 (채널 작음), dropout 1개
+        # 수정: 1→32→64→cnn_channels, dropout 제거 (93개 피처에 dropout 불필요)
         self.GM_CNN = nn.Sequential(
-            nn.Conv1d(1, 16, kernel_size=3, padding=1),
+            nn.Conv1d(1, 32, kernel_size=7, padding=3),
             nn.GELU(),
-            nn.Conv1d(16, 32, kernel_size=3, padding=1),
+            nn.MaxPool1d(kernel_size=3, stride=1),
+            nn.Conv1d(32, 64, kernel_size=5, padding=2),
+            nn.LayerNorm(64),
             nn.GELU(),
-            nn.Dropout(0.1),
-            nn.Conv1d(32, cnn_channels, kernel_size=3, padding=1),
+            nn.MaxPool1d(kernel_size=3, stride=1),
+            nn.Dropout(0.2),
+            nn.Conv1d(64, cnn_channels, kernel_size=3, padding=1),
         )
 
         #CNN 레이어 출력수와 어텐션 레이어 입력 차원을 맞추기 위해 projection 레이어 정의.
-        #CNN 레이어의 출력 채널 수인 cnn_channels를 attn_dim으로 변환하여 어텐션 레이어에 입력할 수 있도록 함.
         self.projection = nn.Linear(
             cnn_channels,
             attn_dim
@@ -39,22 +43,26 @@ class GM_CNN(nn.Module):
         #Normalization 레이어 정의. 
         self.norm = nn.LayerNorm(attn_dim)
 
-        #어텐션 레이어 정의. MultiheadAttention을 사용.
+        # [수정] attention dropout 0.2 → 0.05
         self.attn = nn.MultiheadAttention(
             attn_dim, 
             num_heads,
-            dropout=0.2,
+            dropout=0.1,
             batch_first=True
             )
         
-        #classifier 레이어 정의. 
+        # [수정] classifier 용량 확대: attn_dim→64→32→output
+        # 기존: attn_dim→32→output (중간 레이어 1개로 표현력 부족)
         self.classifier = nn.Sequential(
-            nn.Linear(attn_dim, 32),
+            nn.Linear(attn_dim, 64),
+            nn.LayerNorm(64),
+            nn.GELU(),
+            nn.Dropout(0.2),
+            nn.Linear(64, 32),
             nn.GELU(),
             nn.Linear(32, output_dim)
         )
         
-        #forward 정의.
     def forward(self, x):
         x = x.unsqueeze(1)
         x = self.GM_CNN(x)
@@ -62,7 +70,7 @@ class GM_CNN(nn.Module):
         x = self.projection(x)
         out, atten_w = self.attn(x, x, x)
         out = self.norm(out + x)
-        out = out.mean(dim=1)
+        out = out.max(dim=1).values
         x = self.classifier(out) 
         return x, atten_w
 
@@ -77,16 +85,17 @@ class GM_Encoder(nn.Module):
                   ):
         super().__init__()
 
+        # [수정] Conv 4층 → 3층으로 축소, 채널 확대, dropout 제거
+        # 기존: 1→32→64→64→64, dropout×2 (93개 피처에 4층은 과도)
+        # 수정: 1→32→64→cnn_channels, dropout 없음
+        # kernel_size 5→3→3: 첫 레이어에서 더 넓은 수용 영역 확보
         self.GM_CNN = nn.Sequential(
-            nn.Conv1d(1, 32, kernel_size=3, padding=1),
+            nn.Conv1d(1, 32, kernel_size=5, padding=2),
             nn.GELU(),
             nn.Conv1d(32, 64, kernel_size=3, padding=1),
             nn.GELU(),
-            nn.Dropout(0.1),
-            nn.Conv1d(64, 64, kernel_size=3, padding=1),
-            nn.GELU(),
-            nn.Dropout(0.1),
-            nn.Conv1d(64, cnn_channels, kernel_size=3, padding=1)
+            nn.Dropout(0.2),
+            nn.Conv1d(64, cnn_channels, kernel_size=3, padding=1),
         )
 
         self.projection = nn.Linear(
@@ -96,10 +105,11 @@ class GM_Encoder(nn.Module):
         
         self.norm = nn.LayerNorm(attn_dim)
 
+        # [수정] attention dropout 0.1 → 0.05
         self.attn = nn.MultiheadAttention(
             attn_dim, 
             num_heads,
-            dropout=0.1,
+            dropout=0.3,
             batch_first=True
             )
         
@@ -110,6 +120,5 @@ class GM_Encoder(nn.Module):
         x = self.projection(x)
         out, atten_w = self.attn(x, x, x)
         out = self.norm(out + x)
-        out = out.mean(dim=1)  # (batch, 256) ← feature만 반환
+        out = out.mean(dim=1)
         return out, atten_w
-    

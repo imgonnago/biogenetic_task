@@ -7,6 +7,7 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import model
 from model.GM_Model import GM_CNN
 from model.dataloader import get_dataloader, GMDataset
 from run.validation import validate
@@ -39,9 +40,9 @@ def GM_main():
     print("DataLoader created successfully")
     print("Starting training...")
     print("-" * 50)
-    train(model, train_loader, optimizer=torch.optim.Adam(model.parameters(), lr=1e-4), criterion=nn.CrossEntropyLoss(), num_epochs=100)
-    test(model, test_loader)
-    validate(model, val_loader)
+    best_ckpt = train(model, train_loader, val_loader, optimizer=torch.optim.Adam(model.parameters(), lr=3e-4), num_epochs=100)
+    test(model, test_loader, ckpt_path=best_ckpt)
+    validate(model, val_loader, ckpt_path=best_ckpt)
 
 if __name__ == "__main__":
     GM_main()

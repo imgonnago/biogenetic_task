@@ -5,9 +5,14 @@ from sklearn.metrics import confusion_matrix, classification_report
 def validate(
         model, 
         dataset,
+        ckpt_path,                                          # ★ 추가: 베스트 체크포인트 경로
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ):
-    
+
+    # ★ 베스트 파라미터 로드
+    model.load_state_dict(torch.load(ckpt_path, map_location=device))
+    model.to(device)
+
     model.eval()
     total = 0
     correct = 0
@@ -18,7 +23,7 @@ def validate(
             batch_x = batch_x.to(device)
             batch_y = batch_y.to(device)
 
-            outputs,attn_w = model(batch_x)
+            outputs, attn_w = model(batch_x)
             total += batch_y.size(0)
             _, predicted = torch.max(outputs.data, 1)   
             correct += (predicted == batch_y).sum().item()
@@ -29,15 +34,20 @@ def validate(
     accuracy = 100 * correct / total
     confusion = confusion_matrix(all_labels, all_preds)
     report = classification_report(all_labels, all_preds)
-
     return print(f"Validation Accuracy: {accuracy:.2f}% \nConfusion Matrix: \n{confusion}\nClassification Report: \n{report}")
+
 
 def Fusion_validate(
         model, 
         dataset,
+        ckpt_path,                                          # ★ 추가
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ):
-    
+
+    # ★ 베스트 파라미터 로드
+    model.load_state_dict(torch.load(ckpt_path, map_location=device))
+    model.to(device)
+
     model.eval()
     total = 0
     correct = 0
@@ -45,11 +55,11 @@ def Fusion_validate(
     all_labels = []
     with torch.no_grad():
         for snp, gm, label in dataset:
-            snp = snp.to(device)
-            gm = gm.to(device)
+            snp   = snp.to(device)
+            gm    = gm.to(device)
             label = label.to(device)
 
-            outputs,attn_w = model(snp, gm)
+            outputs, attn_w = model(snp, gm)
             total += label.size(0)
             _, predicted = torch.max(outputs.data, 1)   
             correct += (predicted == label).sum().item()

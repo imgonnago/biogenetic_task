@@ -1,3 +1,4 @@
+from pyexpat import model
 import sys
 from pathlib import Path
 
@@ -32,15 +33,15 @@ def SNP_main():
     SNP_test = SNPDataset(data_dir='./biogenetic', split='test')
     SNP_val = SNPDataset(data_dir='./biogenetic', split='val')
 
-    train_loader = get_dataloader(SNP_train, batch_size=16, split='train')
-    test_loader = get_dataloader(SNP_test, batch_size=16, split='test')
-    val_loader = get_dataloader(SNP_val, batch_size=16, split='val')
+    train_loader = get_dataloader(SNP_train, batch_size=8, split='train')
+    test_loader = get_dataloader(SNP_test, batch_size=8, split='test')
+    val_loader = get_dataloader(SNP_val, batch_size=8, split='val')
 
     print("DataLoader created successfully")
     
-    train(model, train_loader, optimizer=torch.optim.Adam(model.parameters(), lr=1e-4), criterion=nn.CrossEntropyLoss(), num_epochs=50)
-    test(model, test_loader)
-    validate(model, val_loader)
+    best_ckpt = train(model, train_loader, val_loader, optimizer=torch.optim.Adam(model.parameters(), lr=7e-3), num_epochs=100)
+    test(model, test_loader, ckpt_path=best_ckpt)
+    validate(model, val_loader, ckpt_path=best_ckpt)
 
 if __name__ == "__main__":
     SNP_main()
